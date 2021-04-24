@@ -1,0 +1,21 @@
+Work in local env
+export GOOGLE_APPLICATION_CREDENTIALS="*.json"
+pip install google-cloud-bigquery
+
+Work in jupyter notebook
+export GOOGLE_APPLICATION_CREDENTIALS="*.json"
+pip install google-cloud-bigquery
+pip install google-cloud-bigquery-storage
+pip install pyarrow
+jupyter notebook
+
+Work in virutalenv
+pip install virtualenv
+virtualenv google_bigquery
+export GOOGLE_APPLICATION_CREDENTIALS="*.json"
+python -m ipykernel install --user --name=google_bigquery
+source google_bigquery\\Scripts\\activate
+google_bigquery\\Scripts\\pip.exe install google-cloud-bigquery
+
+Coronavirus-Dashboard:
+export GOOGLE_APPLICATION_CREDENTIALS="C:\Users\Sebeast\Desktop\DS-and-CS\Google-Big-Query-Key\coronavirus19-dashboard-04be631d347b.json"
