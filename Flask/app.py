@@ -18,29 +18,35 @@ def getdata():
     # !export GOOGLE_APPLICATION_CREDENTIALS="C:\Users\Sebeast\Desktop\GT-Data-Analytics-Bootcamp\Project2\coronavirus19-dashboard-04be631d347b.json"
     client = bigquery.Client()
     QUERY = (
-        'SELECT DISTINCT date, sum(new_persons_fully_vaccinated) OVER (ORDER BY date) as cum_new_ppl_fully_vaxxed, avg(new_confirmed) OVER (ORDER BY date) as avg_new_confirmed_cases, new_deceased, cumulative_deceased, country_name FROM `bigquery-public-data.covid19_open_data.covid19_open_data` WHERE cumulative_persons_fully_vaccinated IS NOT NULL AND new_confirmed IS NOT NULL  AND new_deceased IS NOT NULL AND cumulative_deceased IS NOT NULL AND country_name IS NOT NULL ORDER BY date ASC'
+        'SELECT DISTINCT date, country_name, sum(new_persons_fully_vaccinated) OVER (PARTITION BY country_name ORDER BY date) as cum_new_ppl_fully_vaxxed, avg(new_confirmed) OVER (PARTITION BY country_name ORDER BY date) as avg_new_confirmed_cases, avg(new_deceased) OVER (PARTITION BY country_name ORDER BY date) as avg_new_deceased, sum(new_deceased) OVER (PARTITION BY country_name ORDER BY date) as cum_deceased FROM `bigquery-public-data.covid19_open_data.covid19_open_data` WHERE cumulative_persons_fully_vaccinated IS NOT NULL AND new_confirmed IS NOT NULL  AND new_deceased IS NOT NULL AND cumulative_deceased IS NOT NULL AND country_name IS NOT NULL ORDER BY date ASC'
         )
     query_job = client.query(QUERY)
     rows = query_job.result()
     date = []
     cum_new_ppl_fully_vaxxed = []
     avg_new_confirmed_cases = []
-    new_deceased = []
-    cumulative_deceased = []
+    avg_new_deceased = []
+    cum_deceased = []
     country_name = []
     for row in rows:
         date.append(row.date)
         cum_new_ppl_fully_vaxxed.append(row.cum_new_ppl_fully_vaxxed)
         avg_new_confirmed_cases.append(row.avg_new_confirmed_cases)
-        new_deceased.append(row.new_deceased)
-        cumulative_deceased.append(row.cumulative_deceased)
+        avg_new_deceased.append(row.avg_new_deceased)
+        cum_deceased.append(row.cum_deceased)
         country_name.append(row.country_name)
     chartdata = pd.DataFrame(cum_new_ppl_fully_vaxxed,date).reset_index().rename(columns={"index":"date",0:"cum_new_ppl_fully_vaxxed"})
     chartdata["avg_new_confirmed"] = avg_new_confirmed_cases
-    chartdata["new_deceased"] = new_deceased
-    chartdata["cumulative_deceased"] = cumulative_deceased
-    chartdata["country_name"] = country_name
-    chartdata = chartdata.dropna()
+    chartdata["avg_new_deceased"] = avg_new_deceased
+    chartdata["cum_deceased"] = cum_deceased
+    chartdata["Country"] = country_name
+    second_column = chartdata.pop('Country')
+    chartdata.insert(1, 'Country', second_column)
+    chartdata = chartdata.dropna().sort_values(["date","Country"], ascending=True)
+
+    # Create Global Data
+    globalchartdata = chartdata[['date','cum_new_ppl_fully_vaxxed','avg_new_confirmed','avg_new_deceased','cum_deceased']]
+    globalchartdata = chartdata.groupby("date").sum()
 
     # Grab heatmap data
     client = bigquery.Client()
@@ -70,10 +76,13 @@ def getdata():
     # Convert to csvs to automatically convert date column to string format
     heatmap.to_csv('static/data/heatmap.csv', index=False)
     chartdata.to_csv('static/data/chartdata.csv', index=False)
+    globalchartdata.to_csv('static/data/globalchartdata.csv', index=False)
+
 
     # Read csvs into variables for mongodb insertion
     heatmap = pd.read_csv('static/data/heatmap.csv')
     chartdata = pd.read_csv('static/data/chartdata.csv')
+    globalchartdata = pd.read_csv('static/data/globalchartdata.csv')
 
     # Insert DF into mongoDB
     client = MongoClient('mongodb://localhost:27017')
@@ -88,6 +97,13 @@ def getdata():
     collection = db.heatmap
     data = heatmap.to_dict(orient='records')
     db.heatmap.insert_many(data)
+
+    # Insert DF into mongoDB
+    client = MongoClient('mongodb://localhost:27017')
+    db = client.Coronavirus19_Dashboard
+    collection = db.globalchartdata
+    data = globalchartdata.to_dict(orient='records')
+    db.globalchartdata.insert_many(data)
 
 @app.route("/")
 def home():
