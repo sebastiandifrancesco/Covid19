@@ -39,10 +39,10 @@ def getdata():
     chartdata["avg_new_confirmed"] = avg_new_confirmed_cases
     chartdata["avg_new_deceased"] = avg_new_deceased
     chartdata["cum_deceased"] = cum_deceased
-    chartdata["Country"] = country_name
-    second_column = chartdata.pop('Country')
-    chartdata.insert(1, 'Country', second_column)
-    chartdata = chartdata.dropna().sort_values(["date","Country"], ascending=True)
+    chartdata["country"] = country_name
+    second_column = chartdata.pop('country')
+    chartdata.insert(1, 'country', second_column)
+    chartdata = chartdata.dropna().sort_values(["date","country"], ascending=True)
 
     # Create Global Data
     globalchartdata = chartdata[['date','cum_new_ppl_fully_vaxxed','avg_new_confirmed','avg_new_deceased','cum_deceased']]
@@ -108,12 +108,15 @@ def getdata():
 @app.route("/")
 def home():
     return render_template("map.html")
-@app.route("/loaddata")
-def loaddata():
+@app.route("/cum_deceased")
+def cum_deceased():
+    return render_template("cum_deceased.html")
+@app.route("/load_data")
+def load_data():
     getdata()
     return "hello"
-@app.route("/accessdata")
-def accessdata():
+@app.route("/access_data")
+def access_data():
     client = MongoClient('mongodb://localhost:27017')
     db = client.Coronavirus19_Dashboard
     linechartandscatterchart = db.linechartandscatterchart.find({})
