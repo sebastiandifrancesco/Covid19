@@ -20,11 +20,11 @@ var coviddate;
 //         console.log(data)})
 // Read the data
 d3.csv("../data/chartdata.csv").then(function(data) {
-    console.log(data);
-    if (data['country'] === "United States of America") {
-        console.log(data.cumulative_deceased)
-    }
-    // List of groups (here I have one group per column)
+    // console.log(data);
+    // if (data['country'] === "United States of America") {
+    //     console.log(data.cumulative_deceased)
+    // }
+    // // List of groups (here I have one group per column)
     var allGroup = ['Albania', 'Andorra', 'Argentina', 'Aruba', 'Australia', 'Austria',
                     'Azerbaijan', 'Bahrain', 'Bangladesh', 'Belarus', 'Belgium',
                     'Bermuda', 'Bolivia', 'Brazil', 'Bulgaria', 'Cambodia', 'Canada',
@@ -48,31 +48,31 @@ d3.csv("../data/chartdata.csv").then(function(data) {
                     'Thailand', 'Tunisia', 'Turkey', 'Ukraine', 'United Arab Emirates',
                     'United Kingdom', 'United States of America', 'Uruguay',
                     'Zimbabwe']
-    // add the options to the button
-    d3.select("#selectButton")
-    .selectAll('myOptions')
-    .data(allGroup)
-    .enter()
-    .append('option')
-    .text(function (d) { return d; }) // text showed in the menu
-    .attr("value", function (d) { return d; }) // corresponding value returned by the button
+    // // add the options to the button
+    // d3.select("#selectButton")
+    // .selectAll('myOptions')
+    // .data(allGroup)
+    // .enter()
+    // .append('option')
+    // .text(function (d) { return d; }) // text showed in the menu
+    // .attr("value", function (d) { return d; }) // corresponding value returned by the button
 
-    // A color scale: one color for each group
-    var myColor = d3.scaleOrdinal()
-    .domain(allGroup)
-    .range(d3.schemeSet2);
+    // // A color scale: one color for each group
+    // var myColor = d3.scaleOrdinal()
+    // .domain(allGroup)
+    // .range(d3.schemeSet2);
 
-    // Format the date and cast the miles value to a number
-    var USdata = [[],[]]
-    data.forEach(function(data) {
-        // data.date = parser(data.date);
-        if (data['country'] === "United States of America") {
-            USdata[0].push(data.date)
-            USdata[1].push(data.cum_deceased)
-        }
-    });  
+    // // Format the date and cast the miles value to a number
+    // var USdata = [[],[]]
+    // data.forEach(function(data) {
+    //     // data.date = parser(data.date);
+    //     if (data['country'] === "United States of America") {
+    //         USdata[0].push(data.date)
+    //         USdata[1].push(data.cum_deceased)
+    //     }
+    // });  
 
-    console.log(USdata)
+    // console.log(USdata)
 
     function filterdata(country_name){
         var otherdata = [[],[]]
@@ -87,6 +87,20 @@ d3.csv("../data/chartdata.csv").then(function(data) {
         return otherdata
     }
 
+    function dropdown() {
+        //read the data
+        //console.log(data);
+        //get the name id to the dropdown menu
+        allGroup.forEach(function(country) {
+            d3.select("#selectButton")
+            .append("option")
+            .text(country)
+            .property("value");
+        });
+        var tempdata2 = filterdata(allGroup[0]);
+        linechart(tempdata2);
+    };
+
     //change event function
     function optionChanged(country_name){
         var tempdata = filterdata(country_name);
@@ -98,91 +112,29 @@ d3.csv("../data/chartdata.csv").then(function(data) {
         var trace1 = {
             x: tempdata[0],
             y: tempdata[1],
-            // mode: 'lines',
-            type: 'bar'
+            mode: 'lines',
+            type: 'scatter'
         };
         var data = [trace1];
 
-        // var layout = {
-        //     xaxis: {
-        //       type: 'date',
-        //       title: 'Date',
-        //       autorange: true
-        //     },
-        //     yaxis: {
-        //       title: 'Cumulative Deaths'
-        //     },
-        //     title:'Cumulative Deaths Over Time'
-        //   };
+        var layout = {
+            xaxis: {
+              title: 'Date'
+            },
+            yaxis: {
+              title: 'Cumulative Deaths'
+            },
+            title:'Cumulative Deaths Over Time'
+          };
         
-        Plotly.newPlot('my_dataviz', data)
+        Plotly.newPlot('my_dataviz', data, layout)
     }
-    linechart('United States of America')
-    optionChanged('Brazil')
-    // // Add X axis --> it is a date format
-    // var x = d3.scaleTime()
-    // .range([0, width])
-    // .domain(d3.extent(data, data => data.date));
-    // svg.append("g")
-    // .attr("transform", "translate(0," + height + ")")
-    // .call(d3.axisBottom(x))
-    // .call(g => g.append("text")
-    // .attr("x", width/2)
-    // .attr("y", margin.bottom - 20)
-    // .attr("fill", "currentColor")
-    // .attr("text-anchor", "end")
-    // .text("Day"));
 
-    // // Add Y axis
-    // var y = d3.scaleLinear()
-    // .range([height, 0])
-    // .domain([0, d3.max(data, data => data.cum_deceased)]);
-    // svg.append("g")
-    // .call(d3.axisLeft(y))
-    // .call(g => g.append("text")
-    // .attr("x", -margin.left)
-    // .attr("y", -20)
-    // .attr("fill", "currentColor")
-    // .attr("text-anchor", "start")
-    // .text("Cumulative Deceased"));
-
-    // // Initialize line with a group
-    // var line = svg
-    // .append('g')
-    // .append("path")
-    //     .datum(USdata)
-    //     .attr("d", d3.line()
-    //     .x(function(d) { return x(+d[0]) })
-    //     .y(function(d) { return y(+d[1]) })
-    //     )
-    //     .attr("stroke", function(d){ return myColor("valueA") })
-    //     .style("stroke-width", 4)
-    //     .style("fill", "none")
-
-    // // A function that update the chart
-    // function update(selectedGroup) {
-
-    // // Create new data with the selection?
-    // var dataFilter = data.map(function(d){return {date: d.date, value:d[selectedGroup]} })
-
-    // // Give these new data to update line
-    // line
-    //     .datum(dataFilter)
-    //     .transition()
-    //     .duration(1000)
-    //     .attr("d", d3.line()
-    //         .x(function(d) { return x(+d.date) })
-    //         .y(function(d) { return y(+d.value) })
-    //     )
-    //     .attr("stroke", function(d){ return myColor(selectedGroup) })
-    // }
-
-    // // When the button is changed, run the updateChart function
-    // d3.select("#selectButton").on("change", function(d) {
-    //     // recover the option that has been chosen
-    //     var selectedOption = d3.select(this).property("value")
-    //     // run the updateChart function with this selected option
-    //     update(selectedOption)
-    // })
-    // return data;
+    dropdown();
 });
+
+//change event function
+function optionChanged(country_name){
+    var tempdata = filterdata(country_name);
+    linechart(tempdata);
+};
