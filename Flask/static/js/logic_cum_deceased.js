@@ -1,23 +1,29 @@
-// set the dimensions and margins of the graph
-var margin = {top: 60, right: 20, bottom: 60, left: 100},
-width = 1300 - margin.left - margin.right,
-height = 700 - margin.top - margin.bottom;
+// // set the dimensions and margins of the graph
+// var margin = {top: 60, right: 20, bottom: 60, left: 100},
+// width = 1300 - margin.left - margin.right,
+// height = 700 - margin.top - margin.bottom;
 
-// append the svg object to the body of the page
-var svg = d3.select("#my_dataviz")
-.append("svg")
-.attr("width", width + margin.left + margin.right)
-.attr("height", height + margin.top + margin.bottom)
-.append("g")
-.attr("transform",
-      "translate(" + margin.left + "," + margin.top + ")");
+// // append the svg object to the body of the page
+// var svg = d3.select("#my_dataviz")
+// .append("svg")
+// .attr("width", width + margin.left + margin.right)
+// .attr("height", height + margin.top + margin.bottom)
+// .append("g")
+// .attr("transform",
+//       "translate(" + margin.left + "," + margin.top + ")");
 
 // Configure a parseTime function which will return a new Date object from a string
-var parser = d3.timeParse("%Y/%m/%d");
-
-//Read the data
-d3.csv("../data/chartdata.csv", function(data) {
-
+// var parser = d3.timeParse("%Y-%m-%d");
+var coviddate;
+// d3.json("http://localhost:8000/access_data").then(function(data){
+//         coviddate = data
+//         console.log(data)})
+// Read the data
+d3.csv("../data/chartdata.csv").then(function(data) {
+    console.log(data);
+    if (data['country'] === "United States of America") {
+        console.log(data.cumulative_deceased)
+    }
     // List of groups (here I have one group per column)
     var allGroup = ['Albania', 'Andorra', 'Argentina', 'Aruba', 'Australia', 'Austria',
                     'Azerbaijan', 'Bahrain', 'Bangladesh', 'Belarus', 'Belgium',
@@ -57,75 +63,126 @@ d3.csv("../data/chartdata.csv", function(data) {
     .range(d3.schemeSet2);
 
     // Format the date and cast the miles value to a number
+    var USdata = [[],[]]
     data.forEach(function(data) {
-    data.date = parser(data.date);
-    data.cum_deceased = +data.cum_deceased;
+        // data.date = parser(data.date);
+        if (data['country'] === "United States of America") {
+            USdata[0].push(data.date)
+            USdata[1].push(data.cum_deceased)
+        }
     });  
 
-    // Add X axis --> it is a date format
-    var x = d3.scaleTime()
-    .range([0, width])
-    .domain(d3.extent(data, data => data.date));
-    svg.append("g")
-    .attr("transform", "translate(0," + height + ")")
-    .call(d3.axisBottom(x))
-    .call(g => g.append("text")
-    .attr("x", width/2)
-    .attr("y", margin.bottom - 20)
-    .attr("fill", "currentColor")
-    .attr("text-anchor", "end")
-    .text("Day"));
+    console.log(USdata)
 
-    // Add Y axis
-    var y = d3.scaleLinear()
-    .range([height, 0])
-    .domain([0, d3.max(data, data => data.cum_deceased)]);
-    svg.append("g")
-    .call(d3.axisLeft(y))
-    .call(g => g.append("text")
-    .attr("x", -margin.left)
-    .attr("y", -20)
-    .attr("fill", "currentColor")
-    .attr("text-anchor", "start")
-    .text("Cumulative Deceased"));
-
-    // Initialize line with group a
-    var line = svg
-    .append('g')
-    .append("path")
-        .datum(data)
-        .attr("d", d3.line()
-        .x(function(d) { return x(+d.date) })
-        .y(function(d) { return y(+d.cum_deceased) })
-        )
-        .attr("stroke", function(d){ return myColor("valueA") })
-        .style("stroke-width", 4)
-        .style("fill", "none")
-
-    // A function that update the chart
-    function update(selectedGroup) {
-
-    // Create new data with the selection?
-    var dataFilter = data.map(function(d){return {date: d.date, value:d[selectedGroup]} })
-
-    // Give these new data to update line
-    line
-        .datum(dataFilter)
-        .transition()
-        .duration(1000)
-        .attr("d", d3.line()
-            .x(function(d) { return x(+d.date) })
-            .y(function(d) { return y(+d.value) })
-        )
-        .attr("stroke", function(d){ return myColor(selectedGroup) })
+    function filterdata(country_name){
+        var otherdata = [[],[]]
+        data.forEach(function(d) {
+            if (d['country'] === country_name) {
+                otherdata[0].push(d.date)
+                otherdata[1].push(d.cum_deceased)
+            }
+        // return otherdata
+        });
+        console.log(otherdata)
+        return otherdata
     }
 
-    // When the button is changed, run the updateChart function
-    d3.select("#selectButton").on("change", function(d) {
-        // recover the option that has been chosen
-        var selectedOption = d3.select(this).property("value")
-        // run the updateChart function with this selected option
-        update(selectedOption)
-    })
+    //change event function
+    function optionChanged(country_name){
+        var tempdata = filterdata(country_name);
+        linechart(tempdata);
+    };
 
-})
+    function linechart(tempdata){
+        console.log(tempdata[0])
+        var trace1 = {
+            x: tempdata[0],
+            y: tempdata[1],
+            // mode: 'lines',
+            type: 'bar'
+        };
+        var data = [trace1];
+
+        // var layout = {
+        //     xaxis: {
+        //       type: 'date',
+        //       title: 'Date',
+        //       autorange: true
+        //     },
+        //     yaxis: {
+        //       title: 'Cumulative Deaths'
+        //     },
+        //     title:'Cumulative Deaths Over Time'
+        //   };
+        
+        Plotly.newPlot('my_dataviz', data)
+    }
+    linechart('United States of America')
+    optionChanged('Brazil')
+    // // Add X axis --> it is a date format
+    // var x = d3.scaleTime()
+    // .range([0, width])
+    // .domain(d3.extent(data, data => data.date));
+    // svg.append("g")
+    // .attr("transform", "translate(0," + height + ")")
+    // .call(d3.axisBottom(x))
+    // .call(g => g.append("text")
+    // .attr("x", width/2)
+    // .attr("y", margin.bottom - 20)
+    // .attr("fill", "currentColor")
+    // .attr("text-anchor", "end")
+    // .text("Day"));
+
+    // // Add Y axis
+    // var y = d3.scaleLinear()
+    // .range([height, 0])
+    // .domain([0, d3.max(data, data => data.cum_deceased)]);
+    // svg.append("g")
+    // .call(d3.axisLeft(y))
+    // .call(g => g.append("text")
+    // .attr("x", -margin.left)
+    // .attr("y", -20)
+    // .attr("fill", "currentColor")
+    // .attr("text-anchor", "start")
+    // .text("Cumulative Deceased"));
+
+    // // Initialize line with a group
+    // var line = svg
+    // .append('g')
+    // .append("path")
+    //     .datum(USdata)
+    //     .attr("d", d3.line()
+    //     .x(function(d) { return x(+d[0]) })
+    //     .y(function(d) { return y(+d[1]) })
+    //     )
+    //     .attr("stroke", function(d){ return myColor("valueA") })
+    //     .style("stroke-width", 4)
+    //     .style("fill", "none")
+
+    // // A function that update the chart
+    // function update(selectedGroup) {
+
+    // // Create new data with the selection?
+    // var dataFilter = data.map(function(d){return {date: d.date, value:d[selectedGroup]} })
+
+    // // Give these new data to update line
+    // line
+    //     .datum(dataFilter)
+    //     .transition()
+    //     .duration(1000)
+    //     .attr("d", d3.line()
+    //         .x(function(d) { return x(+d.date) })
+    //         .y(function(d) { return y(+d.value) })
+    //     )
+    //     .attr("stroke", function(d){ return myColor(selectedGroup) })
+    // }
+
+    // // When the button is changed, run the updateChart function
+    // d3.select("#selectButton").on("change", function(d) {
+    //     // recover the option that has been chosen
+    //     var selectedOption = d3.select(this).property("value")
+    //     // run the updateChart function with this selected option
+    //     update(selectedOption)
+    // })
+    // return data;
+});

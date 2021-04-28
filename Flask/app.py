@@ -5,6 +5,7 @@ import pandas as pd
 from pymongo import MongoClient
 import schedule
 import time
+import csv
 
 app = flask.Flask(__name__, static_url_path='',
             static_folder='static',
@@ -71,12 +72,14 @@ def getdata():
     heatmap["longitude"] = longitude
     heatmap["country_name"] = country_name
 
+    chartdata = chartdata.dropna()
+    globalchartdata = globalchartdata.dropna()
     heatmap = heatmap.dropna()
 
     # Convert to csvs to automatically convert date column to string format
     heatmap.to_csv('static/data/heatmap.csv', index=False)
-    chartdata.to_csv('static/data/chartdata.csv', index=False)
-    globalchartdata.to_csv('static/data/globalchartdata.csv', index=False)
+    chartdata.to_csv('static/data/chartdata.csv', index=False, quoting=csv.QUOTE_NONNUMERIC)
+    globalchartdata.to_csv('static/data/globalchartdata.csv', index=False, quoting=csv.QUOTE_NONNUMERIC)
 
 
     # Read csvs into variables for mongodb insertion
@@ -119,9 +122,18 @@ def load_data():
 def access_data():
     client = MongoClient('mongodb://localhost:27017')
     db = client.Coronavirus19_Dashboard
-    linechartandscatterchart = db.linechartandscatterchart.find({})
-    heatmap = db.heatmap.find({})
-    return jsonify(linechartandscatterchart)
+    print(db)
+    chartdata = db.chartdata.find()
+    chartdatadict = []
+    print(chartdata)
+    for position, i in enumerate(chartdata):
+        chartdatadict.append([position,{'cumulative_deceased':i['cumulative_deceased']}])
+        # print(i)
+        # print(type(i))
+        for key in i.keys():
+            print(key)
+    heatmap = db.heatmap.find()
+    return jsonify(chartdatadict)
 @app.route("/map")
 def map():
     return render_template("map.html")
