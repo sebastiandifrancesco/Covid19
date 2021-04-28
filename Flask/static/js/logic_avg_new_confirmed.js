@@ -133,7 +133,7 @@ function filterdata(country_name){
         data.forEach(function(d) {
             if (d['country'] === country_name) {
                 otherdata[0].push(d.date)
-                otherdata[1].push(d.avg_new_deceased)
+                otherdata[1].push(d.avg_new_confirmed)
             }
         // return otherdata
         });
@@ -154,11 +154,11 @@ function filterdata(country_name){
                 title: 'Date'
                 },
                 yaxis: {
-                title: 'Average New Deaths'
+                title: 'Average New Confirmed Cases'
                 },
-                title:'Average New Deaths per Day'
+                title:'Average New Confirmed Cases per Day'
             };
-
+            
             Plotly.newPlot('my_dataviz', data, layout)
         }
         linechart(otherdata)

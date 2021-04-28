@@ -88,7 +88,7 @@
 //     dropdown();
 // });
 
-var allGroup = ['Albania', 'Andorra', 'Argentina', 'Aruba', 'Australia', 'Austria',
+var allGroup = ['Global','Albania', 'Andorra', 'Argentina', 'Aruba', 'Australia', 'Austria',
                     'Azerbaijan', 'Bahrain', 'Bangladesh', 'Belarus', 'Belgium',
                     'Bermuda', 'Bolivia', 'Brazil', 'Bulgaria', 'Cambodia', 'Canada',
                     'Cayman Islands', 'Chile', 'Colombia', 'Costa Rica', 'Croatia',
@@ -111,31 +111,6 @@ var allGroup = ['Albania', 'Andorra', 'Argentina', 'Aruba', 'Australia', 'Austri
                     'Thailand', 'Tunisia', 'Turkey', 'Ukraine', 'United Arab Emirates',
                     'United Kingdom', 'United States of America', 'Uruguay',
                     'Zimbabwe']
-
-// function linechart(tempdata){
-//     d3.csv("../data/chartdata.csv").then(function(data) {
-//         console.log(tempdata)
-//         var trace1 = {
-//             x: tempdata[0],
-//             y: tempdata[1],
-//             mode: 'lines',
-//             type: 'scatter'
-//         };
-//         var data = [trace1];
-
-//         var layout = {
-//             xaxis: {
-//             title: 'Date'
-//             },
-//             yaxis: {
-//             title: 'Cumulative Deaths'
-//             },
-//             title:'Cumulative Deaths Over Time'
-//         };
-        
-//         Plotly.newPlot('my_dataviz', data, layout)
-//     });
-// }
 
 function dropdown() {
     d3.csv("../data/chartdata.csv").then(function(data) {
