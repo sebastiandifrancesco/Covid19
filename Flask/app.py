@@ -6,6 +6,8 @@ from pymongo import MongoClient
 import schedule
 import time
 import csv
+import numpy as np
+
 
 app = flask.Flask(__name__, static_url_path='',
             static_folder='static',
@@ -19,7 +21,7 @@ def getdata():
     # !export GOOGLE_APPLICATION_CREDENTIALS="C:\Users\Sebeast\Desktop\GT-Data-Analytics-Bootcamp\Project2\coronavirus19-dashboard-04be631d347b.json"
     client = bigquery.Client()
     QUERY = (
-        'SELECT DISTINCT date, country_name, sum(new_persons_fully_vaccinated) OVER (PARTITION BY country_name ORDER BY date) as cum_new_ppl_fully_vaxxed, avg(new_confirmed) OVER (PARTITION BY country_name ORDER BY date) as avg_new_confirmed_cases, avg(new_deceased) OVER (PARTITION BY country_name ORDER BY date) as avg_new_deceased, sum(new_deceased) OVER (PARTITION BY country_name ORDER BY date) as cum_deceased, population FROM `bigquery-public-data.covid19_open_data.covid19_open_data` WHERE cumulative_persons_fully_vaccinated IS NOT NULL AND new_confirmed IS NOT NULL AND new_deceased IS NOT NULL AND cumulative_deceased IS NOT NULL AND country_name IS NOT NULL ORDER BY date ASC'
+        'SELECT DISTINCT date, country_name, sum(new_persons_fully_vaccinated) OVER (PARTITION BY country_name ORDER BY date) as cum_new_ppl_fully_vaxxed, avg(new_confirmed) OVER (PARTITION BY country_name ORDER BY date) as avg_new_confirmed_cases, avg(new_deceased) OVER (PARTITION BY country_name ORDER BY date) as avg_new_deceased, sum(new_deceased) OVER (PARTITION BY country_name ORDER BY date) as cum_deceased FROM `bigquery-public-data.covid19_open_data.covid19_open_data` WHERE cumulative_persons_fully_vaccinated IS NOT NULL AND new_confirmed IS NOT NULL AND new_deceased IS NOT NULL AND cumulative_deceased IS NOT NULL AND country_name IS NOT NULL ORDER BY date ASC'
         )
     query_job = client.query(QUERY)
     rows = query_job.result()
@@ -29,7 +31,6 @@ def getdata():
     avg_new_deceased = []
     cum_deceased = []
     country_name = []
-    population = []
     for row in rows:
         date.append(row.date)
         cum_new_ppl_fully_vaxxed.append(row.cum_new_ppl_fully_vaxxed)
@@ -37,23 +38,104 @@ def getdata():
         avg_new_deceased.append(row.avg_new_deceased)
         cum_deceased.append(row.cum_deceased)
         country_name.append(row.country_name)
-        population.append(row.population)
     chartdata = pd.DataFrame(cum_new_ppl_fully_vaxxed,date).reset_index().rename(columns={"index":"date",0:"cum_new_ppl_fully_vaxxed"})
     chartdata["avg_new_confirmed"] = avg_new_confirmed_cases
     chartdata["avg_new_deceased"] = avg_new_deceased
     chartdata["cum_deceased"] = cum_deceased
     chartdata["country"] = country_name
-    chartdata["population"] = population
     second_column = chartdata.pop('country')
     chartdata.insert(1, 'country', second_column)
     chartdata = chartdata.dropna().sort_values(["date","country"], ascending=True)
 
-    # Create Global Data
+    # Add Global Data
     globalchartdata = chartdata[['date','cum_new_ppl_fully_vaxxed','avg_new_confirmed','avg_new_deceased','cum_deceased']]
     globalchartdata = chartdata.groupby("date").sum().reset_index()
     globalchartdata['country'] = 'Global'
     globalchartdata
     chartdata = pd.concat([chartdata,globalchartdata])
+    chartdata = chartdata.dropna().sort_values(["date","country"], ascending=True)
+
+    # Create Population Data
+    # Create dictionary containing dataframes by country
+    allGroup = ['Global','Albania', 'Andorra', 'Argentina', 'Aruba', 'Australia', 'Austria',
+                    'Azerbaijan', 'Bahrain', 'Bangladesh', 'Belarus', 'Belgium',
+                    'Bermuda', 'Bolivia', 'Brazil', 'Bulgaria', 'Cambodia', 'Canada',
+                    'Cayman Islands', 'Chile', 'Colombia', 'Costa Rica', 'Croatia',
+                    'Curaçao', 'Cyprus', 'Czech Republic', 'Denmark', 'Dominica',
+                    'Dominican Republic', 'Ecuador', 'El Salvador',
+                    'Equatorial Guinea', 'Estonia', 'Falkland Islands',
+                    'Faroe Islands', 'Finland', 'France', 'Germany', 'Gibraltar',
+                    'Greece', 'Greenland', 'Guatemala', 'Guernsey', 'Guinea',
+                    'Hong Kong', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran',
+                    'Ireland', 'Isle of Man', 'Israel', 'Italy', 'Japan', 'Jersey',
+                    'Jordan', 'Kazakhstan', 'Kuwait', 'Laos', 'Latvia', 'Lebanon',
+                    'Liechtenstein', 'Lithuania', 'Luxembourg', 'Malaysia', 'Maldives',
+                    'Malta', 'Marshall Islands', 'Mexico', 'Moldova', 'Monaco',
+                    'Montenegro', 'Montserrat', 'Morocco', 'Netherlands',
+                    'New Zealand', 'Norway', 'Oman', 'Palau', 'Palestine', 'Panama',
+                    'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Romania',
+                    'Russia', 'Saint Helena', 'San Marino', 'Serbia', 'Seychelles',
+                    'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia',
+                    'South Africa', 'South Korea', 'Spain', 'Sweden', 'Switzerland',
+                    'Thailand', 'Tunisia', 'Turkey', 'Ukraine', 'United Arab Emirates',
+                    'United Kingdom', 'United States of America', 'Uruguay',
+                    'Zimbabwe']
+    df_dict = {}
+    for country in allGroup:
+        df_dict[country] = chartdata[chartdata['country'] == country]
+    # Create list containing the last row of each dataframe
+    population_viz = []
+    for key in df_dict:
+        population_viz.append(df_dict[key].tail(1))
+    population_viz = pd.DataFrame(np.concatenate(population_viz))
+    population_viz = population_viz.rename(columns={0:"date",1:"country",2:"cum_new_ppl_fully_vaxxed",3:"avg_new_confirmed",
+                               4:"avg_new_deceased",5:"cum_deceased"})
+    # Remove global row
+    population_viz = population_viz.drop(population_viz.index[0])
+    # Scrape population data
+    allGroup2 = ['Albania', 'Andorra', 'Argentina', 'Aruba', 'Australia', 'Austria',
+                    'Azerbaijan', 'Bahrain', 'Bangladesh', 'Belarus', 'Belgium',
+                    'Bermuda', 'Bolivia', 'Brazil', 'Bulgaria', 'Cambodia', 'Canada',
+                    'Cayman Islands', 'Chile', 'Colombia', 'Costa Rica', 'Croatia',
+                    'Curaçao', 'Cyprus', 'Czech Republic', 'Denmark', 'Dominica',
+                    'Dominican Republic', 'Ecuador', 'El Salvador',
+                    'Equatorial Guinea', 'Estonia', 'Falkland Islands',
+                    'Faroe Islands', 'Finland', 'France', 'Germany', 'Gibraltar',
+                    'Greece', 'Greenland', 'Guatemala', 'Guernsey', 'Guinea',
+                    'Hong Kong', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran',
+                    'Ireland', 'Isle of Man', 'Israel', 'Italy', 'Japan', 'Jersey',
+                    'Jordan', 'Kazakhstan', 'Kuwait', 'Laos', 'Latvia', 'Lebanon',
+                    'Liechtenstein', 'Lithuania', 'Luxembourg', 'Malaysia', 'Maldives',
+                    'Malta', 'Marshall Islands', 'Mexico', 'Moldova', 'Monaco',
+                    'Montenegro', 'Montserrat', 'Morocco', 'Netherlands',
+                    'New Zealand', 'Norway', 'Oman', 'Palau', 'Palestine', 'Panama',
+                    'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Romania',
+                    'Russia', 'Saint Helena', 'San Marino', 'Serbia', 'Seychelles',
+                    'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia',
+                    'South Africa', 'South Korea', 'Spain', 'Sweden', 'Switzerland',
+                    'Thailand', 'Tunisia', 'Turkey', 'Ukraine', 'United Arab Emirates',
+                    'United Kingdom', 'United States', 'Uruguay',
+                    'Zimbabwe']
+    url = 'https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_population'
+    tables = pd.read_html(url)
+    pop_data = tables[0]
+    # Rename and clean country column
+    pop_data = pop_data[['Country(or dependent territory)','Population']].rename(columns={'Country(or dependent territory)':'country',
+                                                                                        'Population':'population'})
+    pop_data['country'] = pop_data['country'].str.split('[').str[0]
+    # Filter for only countries in chartdata
+    pop_data = pop_data[pop_data['country'].isin(allGroup2)].reset_index()
+    # Change United States to Unites States of America
+    pop_data.loc[(pop_data.country == 'United States'),'country']='United States of America'
+    # Merge data
+    population_viz = pd.merge(left=population_viz, right=pop_data, left_on='country', right_on='country')
+    population_viz["perc_ppl_fully_vaxxed"] = population_viz["cum_new_ppl_fully_vaxxed"]/population_viz["population"]
+    population_viz = population_viz[['country','perc_ppl_fully_vaxxed']]
+    population_viz = population_viz.sort_values(['perc_ppl_fully_vaxxed'], ascending=False).reset_index(drop=True)
+
+
+
+    
 
     # Grab heatmap data
     client = bigquery.Client()
@@ -79,19 +161,18 @@ def getdata():
     heatmap["country_name"] = country_name
 
     chartdata = chartdata.dropna()
-    # globalchartdata = globalchartdata.dropna()
     heatmap = heatmap.dropna()
 
     # Convert to csvs to automatically convert date column to string format
     heatmap.to_csv('static/data/heatmap.csv', index=False)
     chartdata.to_csv('static/data/chartdata.csv', index=False, quoting=csv.QUOTE_NONNUMERIC)
-    # globalchartdata.to_csv('static/data/globalchartdata.csv', index=False, quoting=csv.QUOTE_NONNUMERIC)
+    population_viz.to_csv('static/data/population_viz.csv', index=False, quoting=csv.QUOTE_NONNUMERIC)
 
 
     # Read csvs into variables for mongodb insertion
     heatmap = pd.read_csv('static/data/heatmap.csv')
     chartdata = pd.read_csv('static/data/chartdata.csv')
-    # globalchartdata = pd.read_csv('static/data/globalchartdata.csv')
+    population_viz = pd.read_csv('static/data/population_viz.csv')
 
     # Insert DF into mongoDB
     client = MongoClient('mongodb://localhost:27017')
@@ -107,12 +188,12 @@ def getdata():
     data = heatmap.to_dict(orient='records')
     db.heatmap.insert_many(data)
 
-    # # Insert DF into mongoDB
-    # client = MongoClient('mongodb://localhost:27017')
-    # db = client.Coronavirus19_Dashboard
-    # collection = db.globalchartdata
-    # data = globalchartdata.to_dict(orient='records')
-    # db.globalchartdata.insert_many(data)
+    # Insert DF into mongoDB
+    client = MongoClient('mongodb://localhost:27017')
+    db = client.Coronavirus19_Dashboard
+    collection = db.population_viz
+    data = population_viz.to_dict(orient='records')
+    db.population_viz.insert_many(data)
 
 @app.route("/")
 def home():
