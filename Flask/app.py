@@ -83,15 +83,17 @@ def getdata():
     df_dict = {}
     for country in allGroup:
         df_dict[country] = chartdata[chartdata['country'] == country]
+    # Save global data for scatterchart
+    scatterchartdata = df_dict["Global"]
     # Create list containing the last row of each dataframe
-    population_viz = []
+    barchartdata = []
     for key in df_dict:
-        population_viz.append(df_dict[key].tail(1))
-    population_viz = pd.DataFrame(np.concatenate(population_viz))
-    population_viz = population_viz.rename(columns={0:"date",1:"country",2:"cum_new_ppl_fully_vaxxed",3:"avg_new_confirmed",
+        barchartdata.append(df_dict[key].tail(1))
+    barchartdata = pd.DataFrame(np.concatenate(barchartdata))
+    barchartdata = barchartdata.rename(columns={0:"date",1:"country",2:"cum_new_ppl_fully_vaxxed",3:"avg_new_confirmed",
                                4:"avg_new_deceased",5:"cum_deceased"})
     # Remove global row
-    population_viz = population_viz.drop(population_viz.index[0])
+    barchartdata = barchartdata.drop(barchartdata.index[0])
     # Scrape population data
     allGroup2 = ['Albania', 'Andorra', 'Argentina', 'Aruba', 'Australia', 'Austria',
                     'Azerbaijan', 'Bahrain', 'Bangladesh', 'Belarus', 'Belgium',
@@ -128,10 +130,11 @@ def getdata():
     # Change United States to Unites States of America
     pop_data.loc[(pop_data.country == 'United States'),'country']='United States of America'
     # Merge data
-    population_viz = pd.merge(left=population_viz, right=pop_data, left_on='country', right_on='country')
-    population_viz["perc_ppl_fully_vaxxed"] = population_viz["cum_new_ppl_fully_vaxxed"]/population_viz["population"]
-    population_viz = population_viz[['country','perc_ppl_fully_vaxxed']]
-    population_viz = population_viz.sort_values(['perc_ppl_fully_vaxxed'], ascending=False).reset_index(drop=True)
+    barchartdata = pd.merge(left=barchartdata, right=pop_data, left_on='country', right_on='country')
+    barchartdata["perc_ppl_fully_vaxxed"] = barchartdata["cum_new_ppl_fully_vaxxed"]/barchartdata["population"]*100
+    barchartdata = barchartdata[['country','perc_ppl_fully_vaxxed']]
+    barchartdata = barchartdata.sort_values(['perc_ppl_fully_vaxxed'], ascending=False).reset_index(drop=True)
+    barchartdata = barchartdata[3:13]
 
 
 
@@ -166,13 +169,15 @@ def getdata():
     # Convert to csvs to automatically convert date column to string format
     heatmap.to_csv('static/data/heatmap.csv', index=False)
     chartdata.to_csv('static/data/chartdata.csv', index=False, quoting=csv.QUOTE_NONNUMERIC)
-    population_viz.to_csv('static/data/population_viz.csv', index=False, quoting=csv.QUOTE_NONNUMERIC)
-
+    barchartdata.to_csv('static/data/barchartdata.csv', index=False, quoting=csv.QUOTE_NONNUMERIC)
+    scatterchartdata.to_csv('static/data/scatterchartdata.csv', index=False, quoting=csv.QUOTE_NONNUMERIC)
+    scatterchartdata
 
     # Read csvs into variables for mongodb insertion
     heatmap = pd.read_csv('static/data/heatmap.csv')
     chartdata = pd.read_csv('static/data/chartdata.csv')
-    population_viz = pd.read_csv('static/data/population_viz.csv')
+    barchartdata = pd.read_csv('static/data/barchartdata.csv')
+    scatterchartdata = pd.read_csv('static/data/scatterchartdata.csv')
 
     # Insert DF into mongoDB
     client = MongoClient('mongodb://localhost:27017')
@@ -191,13 +196,20 @@ def getdata():
     # Insert DF into mongoDB
     client = MongoClient('mongodb://localhost:27017')
     db = client.Coronavirus19_Dashboard
-    collection = db.population_viz
-    data = population_viz.to_dict(orient='records')
-    db.population_viz.insert_many(data)
+    collection = db.barchartdata
+    data = barchartdata.to_dict(orient='records')
+    db.barchartdata.insert_many(data)
+
+    # Insert DF into mongoDB
+    client = MongoClient('mongodb://localhost:27017')
+    db = client.Coronavirus19_Dashboard
+    collection = db.scatterchartdata
+    data = scatterchartdata.to_dict(orient='records')
+    db.scatterchartdata.insert_many(data)
 
 @app.route("/")
 def home():
-    return render_template("map.html")
+    return render_template("index.html")
 @app.route("/avg_new_confirmed")
 def avg_new_confirmed():
     return render_template("avg_new_confirmed.html")
@@ -210,6 +222,12 @@ def avg_new_deceased():
 @app.route("/cum_deceased")
 def cum_deceased():
     return render_template("cum_deceased.html")
+@app.route("/scatterchart")
+def scatterchart():
+    return render_template("scatterchart.html")
+@app.route("/map")
+def map():
+    return render_template("map.html")
 @app.route("/load_data")
 def load_data():
     getdata()
@@ -230,9 +248,9 @@ def access_data():
             print(key)
     heatmap = db.heatmap.find()
     return jsonify(chartdatadict)
-@app.route("/map")
-def map():
-    return render_template("map.html")
+# @app.route("/map")
+# def map():
+#     return render_template("map.html")
 
 if __name__ == '__main__':
     app.run(host="localhost", port=8000, debug=True)
