@@ -27,7 +27,7 @@ var myMap = L.map("map", {
       if (location) {
   
         markers.addLayer(L.marker([data[i].latitude, data[i].longitude])
-               .bindPopup("<br> Date: " + data[i].date + "<br> Number Ppl Fully Vaxxed: " + data[i].cumulative_persons_fully_vaccinated));
+               .bindPopup("<br> Date: " + data[i].date + "<br> Cumulative Number Ppl Fully Vaxxed: " + data[i].cumulative_persons_fully_vaccinated));
       }
   
     }
