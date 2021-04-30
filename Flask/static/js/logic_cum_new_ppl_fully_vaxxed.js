@@ -113,18 +113,13 @@ var allGroup = ['Global','Albania', 'Andorra', 'Argentina', 'Aruba', 'Australia'
                     'Zimbabwe']
 
 function dropdown() {
-    d3.csv("../data/chartdata.csv").then(function(data) {
-        //read the data
-        //console.log(data);
-        //get the name id to the dropdown menu
-        allGroup.forEach(function(country) {
-            d3.select("#selectButton")
-            .append("option")
-            .text(country)
-            .property("value");
-        });
-        filterdata(allGroup[0]);
+    allGroup.forEach(function(country) {
+        d3.select("#selectButton")
+        .append("option")
+        .text(country)
+        .property("value");
     });
+    filterdata(allGroup[0]);
 };
 
 function filterdata(country_name){
