@@ -1,8 +1,6 @@
 # Covid19
 
-This is a Coronavirus-19 dashboard. Our focus for this project was to look for evidence suggesting that the vaccine may prevent people from being carriers of the Coronavirus-19. 
-
-The Flask folder contains an app.py that has routes to the HTML pages. Line charts contain the average new confirmed cases vs time, the average new deceased people vs time, the running sum of new deceased people vs time, and the running sum of new people fully vaccinated vs time. The scatter chart has the global running sum of new people fully vaccinated on the x-axis and the global average new confirmed daily cases on the y-axis. For the bar chart the top ten countries that are closest to fully vaccinating their entire population are displayed. The heatmap shows the running sum of new people fully vaccinated by latitude and longitude from the beginning of 2021 to the current day. Example pictures are included below:
+This is a Coronavirus-19 dashboard. Our focus for this project was to look for evidence suggesting that the vaccine may prevent people from being carriers of the Coronavirus-19 as well as tracking key metrics. The Line charts contain the average new confirmed cases vs time, the average new deceased people vs time, the running sum of new deceased people vs time, and the running sum of new people fully vaccinated vs time. The scatter chart has the global running sum of new people fully vaccinated on the x-axis and the global average new confirmed daily cases on the y-axis. For the bar chart the top ten countries that are closest to fully vaccinating their entire population are displayed. The heatmap shows the running sum of new people fully vaccinated by latitude and longitude from the beginning of 2021 to the current day. Example pictures are included below:
 
 ![Image description](https://github.com/sebastiandifrancesco/Covid19/blob/main/Images/avg_new_confirmed_cases_per_day.PNG)
 
