@@ -18,4 +18,6 @@ The Flask folder contains an app.py that has routes to the HTML pages. Line char
 
 ![Image description](https://github.com/sebastiandifrancesco/Covid19/blob/main/Images/heatmap.PNG)
 
-After looking through the visualizations you can see that some of the data suggests the vaccines are effective at preventing people from being carriers. For the top ten countries that are closest to fully vaccinating their population you can see how their respective average new cases per day line charts are starting to increase at a less extreme rate or even decrease in some cases. 
+After looking through the visualizations you can see that some of the data suggests the vaccines are effective at preventing people from being carriers. For the top ten countries that are closest to fully vaccinating their population you can see how their respective average new cases per day line charts are starting to increase at a less extreme rate or even decrease in some cases. For example:
+
+![Image description](https://github.com/sebastiandifrancesco/Covid19/blob/main/Images/evidence.PNG)
