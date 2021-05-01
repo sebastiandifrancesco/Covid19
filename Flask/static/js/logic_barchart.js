@@ -1,4 +1,7 @@
+// Creates headers for columns
 var otherdata = [['Country','Percentage of Population Fully Vaccinated']]
+
+// Reads the data in and calls the drawChart function on the data
 d3.csv("../data/barchartdata.csv").then(function(data) {
     // var otherdata = [['Cumulative New People Fully Vaccinated','Average New Confirmed Cases per Day']]
         data.forEach(function(d) {
@@ -10,6 +13,7 @@ d3.csv("../data/barchartdata.csv").then(function(data) {
     google.charts.setOnLoadCallback(drawChart);
 });
 
+// Function for drawing the barchart
 google.charts.load('current', {'packages':['corechart']});
 function drawChart() {
     console.log(otherdata)
