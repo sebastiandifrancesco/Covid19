@@ -33,6 +33,5 @@ var myMap = L.map("map", {
     }
   
     myMap.addLayer(markers);
-  
   });
   
