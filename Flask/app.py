@@ -230,29 +230,28 @@ def barchart():
 @app.route("/map")
 def map():
     return render_template("map.html")
+# Can be called to load current data
 @app.route("/load_data")
 def load_data():
     getdata()
     return "hello"
-@app.route("/access_data")
-def access_data():
-    client = MongoClient('mongodb://localhost:27017')
-    db = client.Coronavirus19_Dashboard
-    print(db)
-    chartdata = db.chartdata.find()
-    chartdatadict = []
-    print(chartdata)
-    for position, i in enumerate(chartdata):
-        chartdatadict.append([position,{'cumulative_deceased':i['cumulative_deceased']}])
-        # print(i)
-        # print(type(i))
-        for key in i.keys():
-            print(key)
-    heatmap = db.heatmap.find()
-    return jsonify(chartdatadict)
-# @app.route("/map")
-# def map():
-#     return render_template("map.html")
+
+# Below route is for future use in case we want to access the data for another project but this route is still in the works
+
+# @app.route("/access_data")
+# def access_data():
+#     client = MongoClient('mongodb://localhost:27017')
+#     db = client.Coronavirus19_Dashboard
+#     print(db)
+#     chartdata = db.chartdata.find()
+#     chartdatadict = []
+#     print(chartdata)
+#     for position, i in enumerate(chartdata):
+#         chartdatadict.append([position,{'cumulative_deceased':i['cumulative_deceased']}])
+#         for key in i.keys():
+#             print(key)
+#     heatmap = db.heatmap.find()
+#     return jsonify(chartdatadict)
 
 if __name__ == '__main__':
     app.run(host="localhost", port=8000, debug=True)
