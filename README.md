@@ -19,3 +19,7 @@ This is a Coronavirus-19 dashboard. Our focus for this project was to track key 
 After looking through the visualizations you can see that some of the data suggests the vaccines are effective at preventing people from being carriers. For the top ten countries that are closest to fully vaccinating their population you can see how their respective average new cases per day line charts are starting to increase at a less extreme rate or even decrease in some cases. For example:
 
 ![Image description](https://github.com/sebastiandifrancesco/Covid19/blob/main/Images/evidence.PNG)
+
+Here you can see that Seychelles and the United States of America have succeeded in slowing the spread of the virus after they started vaccinating their population. Also, if you look at the global data of new average confirmed cases you can see a flattening out of average new cases about the same time that countries started vaccinating. This data shows the curve starting to go up again. This could suggest that the vaccine is only effective at slowing the spread of certain strains of Coronavirus-19 but not all of them.
+
+![Image description](https://github.com/sebastiandifrancesco/Covid19/blob/main/Images/global_evidence.PNG)
