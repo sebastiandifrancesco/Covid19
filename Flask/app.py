@@ -224,6 +224,9 @@ def cum_deceased():
 @app.route("/scatterchart")
 def scatterchart():
     return render_template("scatterchart.html")
+@app.route("/barchart")
+def barchart():
+    return render_template("barchart.html")
 @app.route("/map")
 def map():
     return render_template("map.html")
