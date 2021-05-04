@@ -7,6 +7,7 @@ import schedule
 import time
 import csv
 import numpy as np
+from google.cloud import bigquery
 
 
 app = flask.Flask(__name__, static_url_path='',
@@ -15,8 +16,6 @@ app = flask.Flask(__name__, static_url_path='',
 app.config["DEBUG"] = True
 
 def getdata():
-    from google.cloud import bigquery
-    import pandas as pd
     # import config
     # !export GOOGLE_APPLICATION_CREDENTIALS="C:\Users\Sebeast\Desktop\GT-Data-Analytics-Bootcamp\Project2\coronavirus19-dashboard-04be631d347b.json"
     client = bigquery.Client()
